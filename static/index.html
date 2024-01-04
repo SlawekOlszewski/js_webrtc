@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Video Call with Camera Selection</title>
+    <style>
+      video {
+        width: 49%;
+        height: 80;
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Video Call Application</h1>
+    <div>
+      <label for="cameraSelection">Choose Camera:</label>
+      <select id="cameraSelection"></select>
+
+      <label for="audioInSelection">Choose Audio Input:</label>
+      <select id="audioInSelection"></select>
+
+      <label for="audioOutSelection">Choose Audio Output:</label>
+      <select id="audioOutSelection"></select>
+    </div>
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
