@@ -86,8 +86,14 @@
       <select id="audioOutSelection"></select>
     </div>
     <div id="video-chat">
-      <video id="localVideo" class="videoStyling" autoplay muted></video>
-      <video id="remoteVideo" class="videoStyling" autoplay></video>
+      <video
+        id="localVideo"
+        class="videoStyling"
+        autoplay
+        muted
+        playsinline
+      ></video>
+      <video id="remoteVideo" class="videoStyling" autoplay playsinline></video>
     </div>
     <div id="chat">
       <h2>Chat</h2>

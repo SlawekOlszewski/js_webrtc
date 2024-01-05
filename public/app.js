@@ -373,4 +373,4 @@ function resetConnection() {
 }
 
 // Call resetConnection() before creating a new connection or on page unload
-window.addEventListener("beforeunload", resetConnection);
+document.addEventListener("beforeunload", resetConnection);
