@@ -99,7 +99,10 @@
       </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="app.js"></script>
+    <script>
+      const room = "<%= roomId %>";
+    </script>
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="app.js" defer></script>
   </body>
 </html>

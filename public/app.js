@@ -1,4 +1,4 @@
-const room = prompt("Enter room name:");
+const socket = io();
 
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
@@ -18,13 +18,14 @@ let peerConnection;
 const configuration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
-const socket = io();
 
 let localCameraMirror = false;
 let remoteCameraMirror = false;
 let cameraDisabled = false;
 let muted = false;
 let messagesArr = [];
+
+const peers = {};
 
 function getVideoInputs() {
   return navigator.mediaDevices
@@ -342,15 +343,21 @@ function setupPeerConnection(stream) {
       time: time,
     });
   });
+
+  socket.on("user-disconnected", (userId) => {
+    if (peers[userId]) peers[userId].close();
+    // remoteVideo.remove();
+  });
 }
 
 socket.on("connect", () => {
   console.log("Connected to signaling server");
   resetConnection(); // Reset any existing connection
-  socket.emit("join room", room); // Rejoin the room
+  socket.emit("join room", room, socket.id); // Rejoin the room
   startVideoStream(); // Restart video stream
   // Initialize or reinitialize WebRTC connection setup here
   setupPeerConnection(localStream);
+  peers[socket.id] = peerConnection;
 });
 
 function resetConnection() {
