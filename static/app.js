@@ -78,27 +78,18 @@ getAudioOutputs().then((audioOutputs) => {
   });
 });
 
-function startVideoStream(
-  cameraDeviceId,
-  audioInDeviceId,
-  cameraDisabled,
-  muted
-) {
+function startVideoStream(cameraDeviceId, audioInDeviceId) {
   if (localStream) {
     localStream.getTracks().forEach((track) => track.stop());
   }
   const constraints = {
-    video: cameraDisabled
-      ? false
-      : { deviceId: cameraDeviceId ? { exact: cameraDeviceId } : undefined },
-    audio: muted
-      ? false
-      : {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          deviceId: audioInDeviceId ? { exact: audioInDeviceId } : undefined,
-        },
+    video: { deviceId: cameraDeviceId ? { exact: cameraDeviceId } : undefined },
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+      deviceId: audioInDeviceId ? { exact: audioInDeviceId } : undefined,
+    },
   };
 
   navigator.mediaDevices
@@ -106,6 +97,8 @@ function startVideoStream(
     .then((stream) => {
       localVideo.srcObject = stream;
       localStream = stream;
+      setCamera();
+      setAudio();
       if (peerConnection) {
         setupPeerConnection(stream);
       }
@@ -117,7 +110,7 @@ let selectors = [cameraSelection, audioInSelection];
 
 selectors.forEach((selector) =>
   selector.addEventListener("change", () => {
-    startVideoStream(...selectors.map((s) => s.value), cameraDisabled, muted);
+    startVideoStream(...selectors.map((s) => s.value));
   })
 );
 
@@ -129,27 +122,38 @@ mirrorCamera.addEventListener("click", () => {
     : localVideo.classList.remove("mirrorVideo");
 });
 
-disableCamera.addEventListener("click", () => {
-  cameraDisabled = !cameraDisabled;
-  disableCamera.textContent = cameraDisabled
-    ? "Enable Camera"
-    : "Disable Camera";
+function setCamera() {
   localStream.getTracks().forEach((track) => {
     if (track.readyState == "live" && track.kind == "video") {
       track.enabled = !cameraDisabled;
     }
   });
+}
+
+disableCamera.addEventListener("click", () => {
+  cameraDisabled = !cameraDisabled;
+  disableCamera.textContent = cameraDisabled
+    ? "Enable Camera"
+    : "Disable Camera";
+  cameraDisabled
+    ? disableCamera.classList.add("disabled")
+    : disableCamera.classList.remove("disabled");
+  setCamera();
 });
 
-mute.addEventListener("click", () => {
-  muted = !muted;
-  mute.textContent = muted ? "Unmute" : "Mute";
-  muted ? mute.classList.add("muted") : mute.classList.remove("muted");
+function setAudio() {
   localStream.getTracks().forEach((track) => {
     if (track.readyState == "live" && track.kind == "audio") {
       track.enabled = !muted;
     }
   });
+}
+
+mute.addEventListener("click", () => {
+  muted = !muted;
+  mute.textContent = muted ? "Unmute" : "Mute";
+  muted ? mute.classList.add("disabled") : mute.classList.remove("disabled");
+  setAudio();
 });
 
 audioOutSelection.addEventListener("change", () => {
@@ -347,10 +351,6 @@ socket.on("connect", () => {
   startVideoStream(); // Restart video stream
   // Initialize or reinitialize WebRTC connection setup here
   setupPeerConnection(localStream);
-});
-
-socket.on("close", () => {
-  resetConnection();
 });
 
 function resetConnection() {

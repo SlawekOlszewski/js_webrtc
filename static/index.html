@@ -24,7 +24,7 @@
         border-radius: 8px; /* Rounded corners */
         transition: 0.3s; /* Smooth transition for hover effect */
       }
-      .muted {
+      .disabled {
         background-color: #800020;
       }
       button:hover {
@@ -76,6 +76,7 @@
       <label for="cameraSelection">Choose Camera:</label>
       <select id="cameraSelection"></select>
       <button id="disableCamera">Disable Camera</button>
+      <button id="mirrorCamera">Mirror Camera</button>
 
       <label for="audioInSelection">Choose Audio Input:</label>
       <select id="audioInSelection"></select>
@@ -83,8 +84,6 @@
 
       <label for="audioOutSelection">Choose Audio Output:</label>
       <select id="audioOutSelection"></select>
-
-      <button id="mirrorCamera">Mirror Camera</button>
     </div>
     <div id="video-chat">
       <video id="localVideo" class="videoStyling" autoplay muted></video>
