@@ -3,10 +3,70 @@
   <head>
     <title>Video Call with Camera Selection</title>
     <style>
-      video {
+      .videoStyling {
         width: 49%;
-        height: 80;
         border: 1px solid black;
+      }
+      .mirrorVideo {
+        transform: rotateY(180deg);
+      }
+      button {
+        background-color: #818181; /* Gray background */
+        border: none; /* No border */
+        color: white; /* White text */
+        padding: 15px 32px; /* Padding */
+        text-align: center; /* Centered text */
+        text-decoration: none; /* No underline */
+        display: inline-block; /* Inline block display */
+        font-size: 16px; /* Font size */
+        margin: 4px 2px; /* Margin */
+        cursor: pointer; /* Pointer cursor on hover */
+        border-radius: 8px; /* Rounded corners */
+        transition: 0.3s; /* Smooth transition for hover effect */
+      }
+      .muted {
+        background-color: #800020;
+      }
+      button:hover {
+        background-color: #4caf50; /* Darker shade of green */
+      }
+      #chat {
+        width: 100%;
+        height: 300px;
+        background-color: whitesmoke;
+      }
+      #messages {
+        width: 100%;
+        height: 200px;
+        overflow: auto;
+        overflow-anchor: none;
+      }
+      .localMessage {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 8px;
+        color: white;
+        background-color: #818181;
+        text-align: right;
+        float: right;
+        clear: both;
+      }
+      .remoteMessage {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 8px;
+        color: white;
+        background-color: #2196f3;
+        text-align: left;
+        float: left;
+        clear: both;
+      }
+      .messagesInputs {
+        clear: both;
+      }
+      button:active {
+        background-color: #800020;
+        transition: 0.15s; /* Smooth rotation transition */
       }
     </style>
   </head>
@@ -15,15 +75,30 @@
     <div>
       <label for="cameraSelection">Choose Camera:</label>
       <select id="cameraSelection"></select>
+      <button id="disableCamera">Disable Camera</button>
 
       <label for="audioInSelection">Choose Audio Input:</label>
       <select id="audioInSelection"></select>
+      <button id="mute">Mute</button>
 
       <label for="audioOutSelection">Choose Audio Output:</label>
       <select id="audioOutSelection"></select>
+
+      <button id="mirrorCamera">Mirror Camera</button>
     </div>
-    <video id="localVideo" autoplay muted></video>
-    <video id="remoteVideo" autoplay></video>
+    <div id="video-chat">
+      <video id="localVideo" class="videoStyling" autoplay muted></video>
+      <video id="remoteVideo" class="videoStyling" autoplay></video>
+    </div>
+    <div id="chat">
+      <h2>Chat</h2>
+      <div id="messages"></div>
+      <div id="messagesInputs">
+        <label for="messageBox">Message: </label>
+        <input type="text" id="messageBox" \ />
+        <button id="sendMessage">Send Message!</button>
+      </div>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>

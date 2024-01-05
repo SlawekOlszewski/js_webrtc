@@ -11,36 +11,21 @@ const io = socketIo(server);
 app.use(express.static("static")); // Serve static files from current directory
 app.use(cors());
 
-function auth(req) {
-  return {
-    name: req.query.name,
-    pass: req.query.pass,
-  };
-}
-
-app.use(function (req, res, next) {
-  var user = auth(req);
-
-  if (
-    user === undefined ||
-    user["name"] !== "slawomir" ||
-    user["pass"] !== "karolcia"
-  ) {
-    res.writeHead(401, "Access invalid for user", {
-      "Content-Type": "text/plain",
-    });
-    res.end("Invalid credentials");
-  } else {
-    next();
-  }
-});
-
 app.get("/", (req, res) => {
   res.sendFile(__dirname + static + "/index.html");
 });
 
 io.on("connection", (socket) => {
   console.log("A user connected");
+
+  socket.on("mirror-camera", (room, cameraMirror) => {
+    socket.to(room).emit("mirror-camera", cameraMirror, socket.id);
+  });
+
+  socket.on("message", (room, message) => {
+    console.log("Received message: ", message);
+    socket.to(room).emit("message", message, socket.id);
+  });
 
   socket.on("join room", (room) => {
     console.log("User joined room:", room);

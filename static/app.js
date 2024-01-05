@@ -5,12 +5,26 @@ const remoteVideo = document.getElementById("remoteVideo");
 const cameraSelection = document.getElementById("cameraSelection");
 const audioInSelection = document.getElementById("audioInSelection");
 const audioOutSelection = document.getElementById("audioOutSelection");
+const mirrorCamera = document.getElementById("mirrorCamera");
+const disableCamera = document.getElementById("disableCamera");
+const mute = document.getElementById("mute");
+
+const messages = document.getElementById("messages");
+const messageBox = document.getElementById("messageBox");
+const messageButton = document.getElementById("sendMessage");
+
 let localStream;
 let peerConnection;
 const configuration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 const socket = io();
+
+let localCameraMirror = false;
+let remoteCameraMirror = false;
+let cameraDisabled = false;
+let muted = false;
+let messagesArr = [];
 
 function getVideoInputs() {
   return navigator.mediaDevices
@@ -64,19 +78,27 @@ getAudioOutputs().then((audioOutputs) => {
   });
 });
 
-function startVideoStream(cameraDeviceId, audioInDeviceId) {
+function startVideoStream(
+  cameraDeviceId,
+  audioInDeviceId,
+  cameraDisabled,
+  muted
+) {
   if (localStream) {
     localStream.getTracks().forEach((track) => track.stop());
   }
-
   const constraints = {
-    video: { deviceId: cameraDeviceId ? { exact: cameraDeviceId } : undefined },
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-      deviceId: audioInDeviceId ? { exact: audioInDeviceId } : undefined,
-    },
+    video: cameraDisabled
+      ? false
+      : { deviceId: cameraDeviceId ? { exact: cameraDeviceId } : undefined },
+    audio: muted
+      ? false
+      : {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          deviceId: audioInDeviceId ? { exact: audioInDeviceId } : undefined,
+        },
   };
 
   navigator.mediaDevices
@@ -95,14 +117,69 @@ let selectors = [cameraSelection, audioInSelection];
 
 selectors.forEach((selector) =>
   selector.addEventListener("change", () => {
-    startVideoStream(...selectors.map((s) => s.value));
+    startVideoStream(...selectors.map((s) => s.value), cameraDisabled, muted);
   })
 );
+
+mirrorCamera.addEventListener("click", () => {
+  localCameraMirror = !localCameraMirror;
+  socket.emit("mirror-camera", room, localCameraMirror);
+  localCameraMirror
+    ? localVideo.classList.add("mirrorVideo")
+    : localVideo.classList.remove("mirrorVideo");
+});
+
+disableCamera.addEventListener("click", () => {
+  cameraDisabled = !cameraDisabled;
+  disableCamera.textContent = cameraDisabled
+    ? "Enable Camera"
+    : "Disable Camera";
+  startVideoStream(...selectors.map((s) => s.value), cameraDisabled, muted);
+});
+
+mute.addEventListener("click", () => {
+  muted = !muted;
+  mute.textContent = muted ? "Unmute" : "Mute";
+  muted ? mute.classList.add("muted") : mute.classList.remove("muted");
+  startVideoStream(...selectors.map((s) => s.value), cameraDisabled, muted);
+});
 
 audioOutSelection.addEventListener("change", () => {
   if (typeof remoteVideo.sinkId !== "undefined") {
     remoteVideo.setSinkId(audioOutSelection.value);
   }
+});
+
+function addMessage(type, value, time) {
+  styles = {
+    local: "localMessage",
+    remote: "remoteMessage",
+  };
+  const message = document.createElement("p");
+  message.classList.add(styles[type]);
+  message.textContent = value;
+  messages.appendChild(message);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+document.addEventListener("keyup", function (event) {
+  if (event.key === "Enter") {
+    messageButton.click();
+  }
+});
+
+messageButton.addEventListener("click", () => {
+  let type = "local";
+  let value = messageBox.value;
+  let time = new Date().toString();
+  messagesArr.push({
+    type: type,
+    value: value,
+    time: time,
+  });
+  addMessage(type, value, time);
+  socket.emit("message", room, value);
+  messageBox.value = "";
 });
 
 function setupPeerConnection(stream) {
@@ -147,7 +224,25 @@ function setupPeerConnection(stream) {
   });
 
   socket.on("ice-candidate", (candidate) => {
+    socket.emit("mirror-camera", room, localCameraMirror);
     peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+  });
+
+  socket.on("mirror-camera", (mirror) => {
+    remoteCameraMirror = mirror;
+    remoteCameraMirror
+      ? remoteVideo.classList.add("mirrorVideo")
+      : remoteVideo.classList.remove("mirrorVideo");
+  });
+
+  socket.on("message", (message) => {
+    time = new Date().toString();
+    addMessage("remote", message, time);
+    messagesArr.push({
+      type: "remote",
+      value: message,
+      time: time,
+    });
   });
 }
 
