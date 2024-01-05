@@ -134,14 +134,22 @@ disableCamera.addEventListener("click", () => {
   disableCamera.textContent = cameraDisabled
     ? "Enable Camera"
     : "Disable Camera";
-  startVideoStream(...selectors.map((s) => s.value), cameraDisabled, muted);
+  localStream.getTracks().forEach((track) => {
+    if (track.readyState == "live" && track.kind == "video") {
+      track.enabled = !cameraDisabled;
+    }
+  });
 });
 
 mute.addEventListener("click", () => {
   muted = !muted;
   mute.textContent = muted ? "Unmute" : "Mute";
   muted ? mute.classList.add("muted") : mute.classList.remove("muted");
-  startVideoStream(...selectors.map((s) => s.value), cameraDisabled, muted);
+  localStream.getTracks().forEach((track) => {
+    if (track.readyState == "live" && track.kind == "audio") {
+      track.enabled = !muted;
+    }
+  });
 });
 
 audioOutSelection.addEventListener("change", () => {
